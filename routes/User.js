@@ -1,19 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const { check } = require("express-validator");
+var jwt = require("jsonwebtoken");
+const User = require("../models/user");
 
-const {
-	signup,
-	signin,
-	signout,
-	confirmationPost,
-} = require("../controllers/User");
+const verifyJWT = (req, res, next) => {
+	const token = req.headers["x-access-token"];
+	if (!token) res.send("not authenticated");
+	else
+		jwt.verify(token, process.env.SECRET, (er, decoded) => {
+			if (er) {
+				res.json({
+					error: "Not authenticated",
+				});
+				return;
+			} else req.userID = decoded._id;
+			next();
+		});
+};
 
-const { savePatreons } = require("../controllers/patreonSubs");
+const { signup, signin, confirmationPost } = require("../controllers/User");
+
+const { getData } = require("../controllers/getData");
+
+const { savePatreons } = require("../controllers/allPatrons");
+
+const { unlink } = require("../controllers/unlink");
+
 const {
 	loginButtonClicked,
 	handleOAuthRedirectRequest,
-} = require("../controllers/patreonUserData");
+} = require("../controllers/linkPatreon");
 
 router.post(
 	"/signup",
@@ -36,16 +53,17 @@ router.post(
 	signin
 );
 
-router.get("/signout", signout);
-
-//Token
 router.get("/confirmation", confirmationPost);
 //router.post("/resend", resendTokenPost);
 
 router.get("/getPatrons", savePatreons);
 
-router.get("/patreon-link", loginButtonClicked);
+router.get("/getData", verifyJWT, getData);
+
+router.get("/patreon-link", verifyJWT, loginButtonClicked);
 
 router.get("/oauth/redirect", handleOAuthRedirectRequest);
+
+router.get("/unlink", verifyJWT, unlink);
 
 module.exports = router;

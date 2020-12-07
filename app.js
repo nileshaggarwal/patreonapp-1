@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.use(cors());
 app.use(
 	session({
-		secret: "shush",
+		secret: "keyboard cat",
 		resave: false,
 		saveUninitialized: true,
 		cookie: { secure: true },

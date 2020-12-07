@@ -8,16 +8,13 @@ exports.savePatreons = (req, res) => {
 			console.log(e);
 			return;
 		}
-		console.log("acc", tok.refresh_token, tok.access_token);
 		fetch(
 			`https://www.patreon.com/api/oauth2/token?grant_type=refresh_token&refresh_token=${tok.refresh_token}&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}`,
 			{ method: "POST" }
 		)
-			.then(toke => toke.json())
-			.then(tokens => {
-				console.log("tresp", tokens);
+			.then((toke) => toke.json())
+			.then((tokens) => {
 				const { access_token, refresh_token } = tokens;
-				console.log("new-", access_token, refresh_token);
 				const patreonAPIClient = patreonAPI(access_token);
 				var patrons = [];
 				patreonAPIClient(
@@ -32,17 +29,17 @@ exports.savePatreons = (req, res) => {
 							const tier = i.amount_cents;
 							patrons.push({ user_id, tier, user_name, user_email });
 						}
-						res.json(patrons);
 						tok.access_token = access_token;
 						tok.refresh_token = refresh_token;
 						tok.save();
+						res.json(patrons);
 					})
-					.catch(err => {
+					.catch((err) => {
 						console.error("Error fetching pledges:", err);
 						res.status(400);
 					});
 			})
-			.catch(err => {
+			.catch((err) => {
 				console.error("Error getting access token:", err);
 				res.status(400);
 			});

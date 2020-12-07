@@ -1,7 +1,6 @@
-const User = require("../models/User");
-const { body, validationResult } = require("express-validator");
+const User = require("../models/user");
+const { validationResult } = require("express-validator");
 var jwt = require("jsonwebtoken");
-var expressJwt = require("express-jwt");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -10,8 +9,8 @@ const TokenS = require("../models/Token");
 const transporter = nodemailer.createTransport({
 	service: "gmail",
 	auth: {
-		user: process.env.NODEMAILER_USER,
-		pass: process.env.NODEMAILER_PASS,
+		user: "2gi19cs140@students.git.edu",
+		pass: "hupfwsmwznwchtsf",
 	},
 });
 
@@ -28,26 +27,30 @@ exports.signup = (req, res) => {
 	const email = req.body.email;
 	const pass = req.body.password;
 
-	bcrypt.hash(pass, 10, (err, hash) => {
+	bcrypt.hash(pass, 8, (err, hash) => {
 		const user = new User({
 			name: name,
 			email: email,
 			password: hash,
 		});
 
-		user.save((er, userr) => {
+		user.save((er, u) => {
 			if (er) {
 				return res.status(400).json({
 					err: "NOT able to save user in DB",
 				});
 			}
-			console.log(`user ${userr.email} created`);
-			sendMail(userr, transporter, res);
+			console.log(`New user ${u.email} created.`);
+			const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+				expiresIn: "18h",
+			});
+			res.json({ token, user });
+			sendMail(u);
 		});
 	});
 };
 
-const sendMail = (user, tran, res) => {
+const sendMail = (user) => {
 	var mailOptions = {
 		from: "shreyxs@gmail.com",
 		to: user.email,
@@ -60,25 +63,20 @@ const sendMail = (user, tran, res) => {
 			createToken(user.id) +
 			"\n",
 	};
-	tran.sendMail(mailOptions, function (err, msg) {
+	transporter.sendMail(mailOptions, function (err, msg) {
 		if (err) {
 			console.log("send mail error -", err.message);
-			res.status(500).json({ msg: err.message });
-			return;
 		} else {
-			res.status(200).json(user);
-			console.log(`Everything done - welcome ${user.name}!`);
-			return;
+			console.log(`sent email to ${user.email} sucessfully.`);
 		}
 	});
 };
 
-const createToken = userID => {
+const createToken = (userID) => {
 	const tokenS = new TokenS({
 		userId: userID,
 		token: crypto.randomBytes(16).toString("hex"),
 	});
-	console.log("created token -", tokenS);
 	tokenS.save((err, response) => {
 		if (err) {
 			console.log("unable to save token in db.");
@@ -104,6 +102,7 @@ exports.confirmationPost = (req, res, next) => {
 					"We were unable to find a valid token. Your token my have expired.",
 			});
 
+		// If we found a token, find a matching user
 		User.findOne({ _id: token.userId }, function (e, user) {
 			if (!user)
 				return res
@@ -115,13 +114,14 @@ exports.confirmationPost = (req, res, next) => {
 					msg: "This user has already been verified.",
 				});
 
+			// Verify and save the user
 			user.isVerified = true;
 			console.log(`${user.name} - Verified.`);
-			user.save(function (er) {
-				if (er) {
-					return res.status(500).send({ msg: er.message });
+			user.save(function (err) {
+				if (err) {
+					return res.status(500).send({ error: err.message });
 				}
-				res.status(200).json("The account has been verified. Please log in.");
+				res.status(200).send("The account has been verified. Please log in.");
 			});
 		});
 	});
@@ -148,7 +148,9 @@ exports.signin = (req, res) => {
 		bcrypt.compare(password, user.password, function (er, result) {
 			if (er) {
 				console.log(er);
-				res.json("wrong password");
+				res.json({
+					error: "Email and password do not match",
+				});
 			}
 			if (!result) {
 				res.status(401).json({
@@ -157,23 +159,13 @@ exports.signin = (req, res) => {
 				return;
 			}
 
-			const token = jwt.sign({ _id: user._id }, process.env.SECRET);
+			//create token
+			const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+				expiresIn: "18h",
+			});
 
-			res.cookie("token", token, { expire: new Date() + 14 });
-
-			console.log(`${user.name} signed in.`);
-			req.app.locals.email = user.email;
-			console.log(req.app.locals.email);
+			//send response  to frontend
 			return res.json({ token, user });
 		});
-	});
-};
-
-exports.signout = (req, res) => {
-	delete req.app.locals.email;
-	console.log(req.app.locals.email);
-	res.clearCookie("token");
-	res.json({
-		message: "User signout successfully",
 	});
 };
