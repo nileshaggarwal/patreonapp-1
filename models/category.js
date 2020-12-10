@@ -8,7 +8,7 @@ const categorySchema = new mongoose.Schema(
 			required: true,
 		},
 		tier: {
-			type: String,
+			type: Number,
 			required: true,
 		},
 	},
