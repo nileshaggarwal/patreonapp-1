@@ -14,7 +14,15 @@ const verifyJWT = (req, res, next) => {
 					error: "Not authenticated",
 				});
 				return;
-			} else req.userID = decoded._id;
+			} else
+				User.findOne({ _id: decoded._id }, (err, user) => {
+					if (err || !user) {
+						res.json({
+							error: "Failed to authenticate token.",
+						});
+						return;
+					} else req.userID = decoded._id;
+				});
 			next();
 		});
 };
@@ -63,6 +71,8 @@ router.get("/getData", verifyJWT, getData);
 router.get("/patreon-link", verifyJWT, loginButtonClicked);
 
 router.get("/oauth/redirect", handleOAuthRedirectRequest);
+
+router.get("/getTier", verifyJWT, (req, res) => res.json(req.app.locals.tier));
 
 router.get("/unlink", verifyJWT, unlink);
 
