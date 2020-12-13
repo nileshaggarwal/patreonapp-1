@@ -7,12 +7,7 @@ const fontSchema = new mongoose.Schema(
 			type: ObjectId,
 			ref: "Category",
 		},
-		fonts: [
-			{
-				data: Buffer,
-				contentType: String,
-			},
-		],
+		fonts: [],
 	},
 	{ timestamps: true }
 );

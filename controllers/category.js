@@ -18,10 +18,7 @@ exports.createCategory = (req, res) => {
 exports.addLogos = (req, res, next) => {
 	const font = new Font(req.body);
 	console.log(req.files.length);
-	for (i = 0; i < req.files.length; i++) {
-		font.fonts.data = fs.readFileSync(req.files.path);
-		font.fonts.contentType = req.files.type;
-	}
+	font.fonts = req.files;
 
 	font.save((err, font) => {
 		if (err) {
