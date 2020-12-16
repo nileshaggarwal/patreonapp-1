@@ -1,32 +1,21 @@
 const Category = require("../models/category");
-const Font = require("../models/fonts");
-const { validationResult } = require("express-validator");
-const fs = require("fs");
 
-exports.createCategory = (req, res) => {
-	const category = new Category(req.body);
-	category.save((err, category) => {
-		if (err) {
-			res.status(400).json({
-				error: "NOT able to save category in DB",
-			});
-		}
-		res.json({ category });
+exports.addCategory = (req, res) => {
+	const { name, tier } = req.body;
+	console.log(req.files, req.body);
+	const fnts = req.files.map(photo => {
+		const { encoding, mimetype, path } = photo;
+		return { encoding, mimetype, path };
 	});
-};
+	const categ = new Category({ name, tier, fnts });
 
-exports.addLogos = (req, res, next) => {
-	const font = new Font(req.body);
-	console.log(req.files.length);
-	font.fonts = req.files;
-
-	font.save((err, font) => {
+	categ.save((err, cate) => {
 		if (err) {
 			console.log(err);
 			res.status(400).json({
 				error: "Error saving in db",
 			});
 		}
-		res.json(font);
+		res.json("done", cate);
 	});
 };

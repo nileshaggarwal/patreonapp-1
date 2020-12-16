@@ -6,7 +6,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-var session = require("express-session");
+var multer = require("multer");
+var upload = multer({ dest: "uploads/" });
 
 //My routes
 const userRoutes = require("./routes/User");
@@ -24,17 +25,11 @@ mongoose
 
 //Middlewares
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(
-	session({
-		secret: "keyboard cat",
-		resave: false,
-		saveUninitialized: true,
-		cookie: { secure: true },
-	})
-);
+app.use(express.static("uploads"));
+app.use(upload.array());
 
 //My Routes
 app.use("/", userRoutes);
