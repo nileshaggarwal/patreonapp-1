@@ -10,9 +10,7 @@ const verifyJWT = (req, res, next) => {
 	else
 		jwt.verify(token, process.env.SECRET, (er, decoded) => {
 			if (er) {
-				res.json({
-					error: "Not authenticated",
-				});
+				res.json({ error: "Not authenticated" });
 				return;
 			} else
 				User.findOne({ _id: decoded._id }, (err, user) => {
@@ -21,9 +19,11 @@ const verifyJWT = (req, res, next) => {
 							error: "Failed to authenticate token.",
 						});
 						return;
-					} else req.userID = decoded._id;
+					} else {
+						req.userID = decoded._id;
+						next();
+					}
 				});
-			next();
 		});
 };
 
