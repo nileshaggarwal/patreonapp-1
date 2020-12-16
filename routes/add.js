@@ -4,10 +4,6 @@ const { addCategory } = require("../controllers/category");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
-router.post(
-	"/font",
-	upload.fields([{ name: "fonts", maxCount: 26 }]),
-	addCategory
-);
+router.post("/font", upload.array("fonts", 10), addCategory);
 
 module.exports = router;

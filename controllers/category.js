@@ -3,11 +3,11 @@ const Category = require("../models/category");
 exports.addCategory = (req, res) => {
 	const { name, tier } = req.body;
 	console.log(req.files, req.body);
-	const fnts = req.files.map(photo => {
+	const fonts = req.files.map((photo) => {
 		const { encoding, mimetype, path } = photo;
 		return { encoding, mimetype, path };
 	});
-	const categ = new Category({ name, tier, fnts });
+	const categ = new Category({ name, tier, fonts });
 
 	categ.save((err, cate) => {
 		if (err) {
@@ -16,6 +16,6 @@ exports.addCategory = (req, res) => {
 				error: "Error saving in db",
 			});
 		}
-		res.json("done", cate);
+		res.json(cate);
 	});
 };

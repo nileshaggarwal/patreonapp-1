@@ -6,8 +6,6 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-var multer = require("multer");
-var upload = multer({ dest: "uploads/" });
 
 //My routes
 const userRoutes = require("./routes/User");
@@ -29,7 +27,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use(express.static("uploads"));
-app.use(upload.array());
 
 //My Routes
 app.use("/", userRoutes);
